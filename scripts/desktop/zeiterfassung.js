@@ -1664,7 +1664,7 @@ function holiDays(von, bis, tagewoche) {
     let holiMaxID = jr_get_table_max_id('stb_ferien');
     let holiDays = 0;
 
-    //console.log(holiMaxID);
+    console.log(holiMaxID);
 
     if (holiMaxID || holiMaxID == 0) {
 
