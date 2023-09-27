@@ -1226,7 +1226,7 @@ function getTimeSumSB() {
 
     let monat = jr_get_value('txb_month');
 
-    let minuten = timeSum();
+    let minuten = timeSumSB();
 
     let rowIDs2 = jr_get_subtable_row_ids('monatsplan');
 
