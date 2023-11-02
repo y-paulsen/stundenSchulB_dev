@@ -43,24 +43,20 @@ function onloadDia() {
         jr_set_disabled('btn_save', 1);
 
         var maxID = jr_get_subtable_max_id('schichten');
-        console.log('maxID in EventListener onClick:'+maxID);
+        //console.log('maxID in EventListener onClick:'+maxID);
 
         const start = Date.now();
-        console.log('starting timer...');
+        //console.log('starting timer...');
 
-        setTimeout(()=>{
+        jQuery( "#div_plan" ).ready( function() {
 
-            jQuery( "#div_plan" ).ready( function() {
+            const millis = Date.now() - start;
+            //console.log(`seconds elapsed = ${millis / 1000}`);
+            // Expected output: "seconds elapsed = 2"
 
-                const millis = Date.now() - start;
-                console.log(`seconds elapsed = ${millis / 1000}`);
-                // Expected output: "seconds elapsed = 2"
-
-                updateClient(maxID, start);
-          
-            });
-
-        },1000);
+            updateClient(maxID, start);
+    
+        });
 
     });
 
@@ -73,100 +69,6 @@ function onloadDia() {
         //jr_loop_table('stb_arbeitstage', showWorkdayCheckbox);
   
     });
-
-}
-
-
-/**
- * Funktion wird beim Laden des Prüfdialogs aufgerufen. 
- * Es werden zusätzliche Spalten in der Untertabelle angezeigt:
- * korrigiert, zwei-zu-eins, Pool
- */
-function onloadPerso() {
-
-    timeDisplayUpdate();
-
-    jr_show_subtable_column('schichten', 'korrigiert');
-    jr_show_subtable_column('schichten', 'zwei-zu-eins');
-    jr_show_subtable_column('schichten', 'pool');
-
-    $("schichten_add_value").hide();
-
-    jr_show_subtable_column('monatsplan', 'soll_stunden');
-    jr_show_subtable_column('monatsplan', 'stunden');
-    jr_show_subtable_column('monatsplan', 'stundenkonto');
-
-    jr_hide_subtable_column('monatsplan', 'soll_stunden_txt');
-    jr_hide_subtable_column('monatsplan', 'stunden_txt');
-    jr_hide_subtable_column('monatsplan', 'stundenkonto_txt');
-
-
-    //jr_sql_refresh('stx_status');
-    jr_sql_refresh('stx_koordination_email');
-
-    let fdc = jr_get_value('stx_firstDateContract');
-    let ldc = jr_get_value('stx_lastDateContract');
-
-    //console.log(`Vertragsbeginn: ${fdc}\nVertragsende: ${ldc}`);
-
-    fdc = new Date(fdc);
-
-    if (ldc) {
-
-        ldc = new Date(ldc);
-
-    }
-
-    //console.log(`Vertragsbeginn (Date Object): ${fdc}\nVertragsende (Date Object): ${ldc}`);
-
-    jr_set_value('dt_firstOfContract', fdc);
-    jr_set_value('dt_lastOfContract', ldc);
-
-    jr_set_value('cb_back', 0);
-
-    jQuery( document ).ready( function() {
-
-        let zeitraum = abrZeitraum();
-
-        //console.log(`Zeitraum: ${zeitraum}`);
-    
-        jr_set_value('txb_abrzeit', zeitraum);
-  
-    });
-
-    jQuery(function() {
-
-        //console.log(jQuery('#stx_status2').val());
-
-        let status = jQuery('#stx_status2').val();
-
-        let statusDsc = `<h2 align="center" >${status}</h2>`
-
-        jr_set_value('txb_status', status);
-
-        jr_set_value('dsc_status', statusDsc);
-
-        if (status == 'In Maßnahme' || status == 'Verfügbar' || status == 'Springer' || status == 'Dezentrale Koordination' || status == 'Springer Schule') {
-    
-            jQuery("#div_dsc_status").css( "border", "3px solid green" );
-    
-        }
-    
-        else if (status == 'Krank (Langzeit)' || status == 'Beschäftigungsverbot' || status == 'Freistellung' || status == 'Elternzeit' || status == 'Ruhend') {
-    
-            jQuery("#div_dsc_status").css( "border", "3px solid red" );
-    
-        }
-    
-        else {
-    
-            jQuery("#div_dsc_status").css( "border", "3px solid yellow" );
-    
-        }
-
-    });
-
-    
 
 }
 
@@ -238,72 +140,64 @@ function springerUpdate(elementId) {
  */
 function updateClient(elementId, start) {
 
-    var maxID = jr_get_subtable_max_id('schichten');
-    console.log('maxID in Schichten:'+maxID);
+    setTimeout(()=>{
 
-    var schulB = jr_get_value('txb_schulB');
-    console.log(`ID aus txb_schulB: ${schulB}`);
-
-    if (elementId < 0) {
-
-        setTimeout(()=>{
-
+        var maxID = jr_get_subtable_max_id('schichten');
+        //console.log('maxID in Schichten:'+maxID);
+    
+        var schulB = jr_get_value('txb_schulB');
+        //console.log(`ID aus txb_schulB: ${schulB}`);
+    
+        if (elementId < 0) {
+    
             jQuery( "#div_plan" ).ready( function() {
-
+    
                 let millis = Date.now() - start;
-                console.log(`1st if: seconds elapsed = ${millis / 1000}`);
-
+                //console.log(`1st if: seconds elapsed = ${millis / 1000}`);
+    
                 jr_set_subtable_value('schichten', 0, 'schulB', schulB);
                 jr_subtable_refresh('schichten', 'klient', 0);
                 
                 serviceListUpdate(0);
-
+        
             });
-
-        },500);
-
-    } else if (maxID > elementId) {
-
-        setTimeout(()=>{
-
+    
+        } else if (maxID > elementId) {
+    
             jQuery( "#div_plan" ).ready( function() {
-
+    
                 let millis = Date.now() - start;
-                console.log(`2nd if: seconds elapsed = ${millis / 1000}`);
-
+                //console.log(`2nd if: seconds elapsed = ${millis / 1000}`);
+    
                 jr_set_subtable_value('schichten', maxID, 'schulB', schulB);
                 jr_subtable_refresh('schichten', 'klient', maxID);
-
+    
                 serviceListUpdate(maxID);
-
+        
             });
-
-        },500);
-
-    } else {
-
-        setTimeout(()=>{
-
+    
+        } else {
+    
             jQuery( "#div_plan" ).ready( function() {
-
+    
                 let millis = Date.now() - start;
-                console.log(`3rd if: seconds elapsed = ${millis / 1000}`);
-
+                //console.log(`3rd if: seconds elapsed = ${millis / 1000}`);
+    
                 if ( maxID == elementId) {
-
+    
                     jr_set_subtable_value('schichten', elementId+1, 'schulB', schulB);
                     jr_subtable_refresh('schichten', 'klient', elementId+1);
         
                     serviceListUpdate(elementId+1);    
-
+    
                 }
-
+        
             });
+    
+        }
 
+    },1500);
 
-        },1000);
-
-    }
 }
 
 
@@ -540,44 +434,6 @@ function onDiaSave() {
 
 
 /**
- * Aufruffunktion um zu Prüfen, ob alle Daten der Untertabelle korrekt sind, spezifisch für die Prüfungsansicht
- * Siehe onDiaSave()
- */
-function onDiaSavePerso() {
-    
-    var rowIDs = jr_get_subtable_row_ids('schichten');
-    rowIDs.forEach(klientName);
-    rowIDs.forEach(poolName);
-    
-    jr_set_value('txb_checkSafe', 0);
-    
-    document.getElementById("schichten_add_value").value = 1;
-
-    var rowIDs = jr_get_subtable_row_ids('schichten');
-    
-    rowIDs.forEach(reset_2to1);
-    
-    rowIDs.forEach(saveCheck);
-    
-    var checkSave = jr_get_value('txb_checkSafe');
-    //console.log("before dateOverlap() CheckSave: "+checkSave);
-
-    if (checkSave == resCheck) {
-        rowIDs.forEach(dateOverlapCheck);
-    }
-
-    document.getElementById("schichten").addEventListener("click", function () {
-    
-        rowIDs.forEach(resetError);
-
-    });
-
-    monthHoursOverwrite();
-
-}
-
-
-/**
  * Setzt die Styles der Zeilen mit fehlerhaften Eingaben zurück
  * @param {number} rowId 
  */
@@ -646,20 +502,20 @@ function saveCheck(elementId) {
     var pool = jr_get_subtable_value('schichten', elementId, 'pool');
 
     var vonMonat = jr_get_value('dt_firstOfMonth');
-    console.log(`Monatsbeginn: ${vonMonat}`);
+    //console.log(`Monatsbeginn: ${vonMonat}`);
     
     var bisMonat = jr_get_value('dt_lastOfMonth');
     bisMonat.setHours(23, 59, 59, 999);
-    console.log(`Monatsende: ${bisMonat}`);
+    //console.log(`Monatsende: ${bisMonat}`);
 
     var vonVertr = jr_get_value('dt_firstOfContract');
-    console.log(`Vertragsbeginn: ${vonVertr}`);
+    //console.log(`Vertragsbeginn: ${vonVertr}`);
     var bisVertr = jr_get_value('dt_lastOfContract');
-    console.log(`Vertragsende: ${bisVertr}`);
+    //console.log(`Vertragsende: ${bisVertr}`);
 
     var schule = jr_get_value('stx_schule');
 
-    console.log('Reihe '+elementId+': '+idK+' '+von+' '+bis+' '+la+' '+tk+' '+time+' '+pool);
+    //console.log('Reihe '+elementId+': '+idK+' '+von+' '+bis+' '+la+' '+tk+' '+time+' '+pool);
 
     if (isValidDate(vonVertr)) {
 
@@ -827,7 +683,7 @@ function dateOverlapCheck(elementId) {
 
             } else if (!(dateCheck(von, bis, von2) && dateCheck(von, bis, bis2) && dateCheck(von2, bis2, von) && dateCheck(von2, bis2, bis)) && idK == klient2) {
 
-                jr_notify_error('Unmittelbare Leistungen beim selben Klienten dürfen sich nicht überschneiden.', 5);
+                jr_notify_error('Leistungen beim selben Klienten dürfen sich nicht überschneiden.', 5);
                 var elem = document.getElementById("schichten_von_" + elementId);
                 elem.className = dateClass;
                 var elem1 = document.getElementById("schichten_bis_" + elementId);
@@ -1072,15 +928,15 @@ function getAbsenceCallback(returnObject) {
         jr_show_step_action('save');
 
         sortShifts();
-        getTimeSum();
+        getTimeSumSB();
         
         let bis = jr_get_value('dt_lastOfMonth');
         bis.setHours(23, 59, 59, 999);
 
         let today = new Date();
 
-        console.log(bis);
-        console.log(today);
+        //console.log(bis);
+        //console.log(today);
 
         if (today > bis) {
             
@@ -1109,9 +965,10 @@ function saveMonStuCallback(returnObject) {
 
     if (returnObject.result) {
 
-        //jr_notify_info(returnObject.result.rowData);
-        jr_subtable_refresh('monatsplan');
+        jr_notify_info(returnObject.result.rowData);
+        jr_subtable_refresh('monatsplan','*','*'); // aktualisiert die SQL-Elemente aller Spalten für alle Zeilen
         jr_sql_refresh('stb_monatsplan');
+
 
     }
 }
@@ -1134,8 +991,8 @@ function updateDataCallback() {
     let fdc = jr_get_value('stx_firstDateContract');
     let ldc = jr_get_value('stx_lastDateContract');
 
-    console.log(`Vertragsbeginn: ${fdc}`);
-    console.log(`Vertragsende: ${ldc}`);
+    //console.log(`Vertragsbeginn: ${fdc}`);
+    //console.log(`Vertragsende: ${ldc}`);
 
     if (fdc) {
 
@@ -1158,7 +1015,7 @@ function updateDataCallback() {
     let esc_quick = jr_get_value('stb_escalation_date');
     
     let loc = jr_get_value('dt_lastOfContract');
-    console.log(loc);
+    //console.log(loc);
     
     if (isValidDate(loc)) {
 
@@ -1170,9 +1027,9 @@ function updateDataCallback() {
 
     let esc_date = new Date(esc_quick);
 
-    console.log(today);
-    console.log(esc_date);
-    console.log(loc);
+    //console.log(today);
+    //console.log(esc_date);
+    //console.log(loc);
 
     if (today > esc_date ) {
         
@@ -1190,6 +1047,8 @@ function updateDataCallback() {
 }
 
 
+
+
 /* ---------------------------------- STUNDENBERECHNUNG ----------------------------------- */
 
 
@@ -1203,7 +1062,7 @@ function getTimeSum() {
 
     let monat = jr_get_value('txb_month');
 
-    let minuten = timeSum();
+    let minuten = timeSumSB();
 
     let rowIDs2 = jr_get_subtable_row_ids('monatsplan');
 
@@ -1268,88 +1127,6 @@ function getTimeSum() {
             stunden: decStd, stunden_txt: anzZeit, 
             stundenkonto: decKonto, stundenkonto_txt: anzStundenKonto}, saveMonStuCallback, errorCallback);
 
-        //console.log('Monatsstunden (Anzeige): '+anzZeit);
-        //console.log('Monatsstunden (Minuten): '+minuten);
-
-    }
-
-}
-
-
-/**
- * Zentrale Stundenberechnungs-Funktion (s.o. getTimeSum())
- * Speziell angepasst auf die Belange der Sachbearbeitung
- */
-function getTimeSumSB() {
-
-    let monat = jr_get_value('txb_month');
-
-    let minuten = timeSum();
-
-    let rowIDs2 = jr_get_subtable_row_ids('monatsplan');
-
-    if (rowIDs2) {
-        rowIDs2.forEach(deleteSubRow);
-    }
-
-    jr_subtable_refresh('monatsplan');
-
-    if (minuten || minuten == 0) {
-
-        /** -------------------------------------------------------------------------------- */
-
-        let sollMonStuArr = multipleContracts();
-
-        //console.log(`sollMonStuArr: ${sollMonStuArr}`);
-
-        let sollMonStu = sollMonStuArr[0].reduce(function (a, b) {
-            return a + b;
-          }, 0);
-
-        //console.log(`Soll-Stunden (Monat): ${sollMonStu}`);
-
-        minuten += sollMonStuArr[1].reduce(function (a, b) {
-            return a + b;
-          }, 0);
-
-        //console.log(`Minuten (Monat): ${minuten}`);
-
-        /** -------------------------------------------------------------------------------- */
-
-        let stundenKonto = minuten - sollMonStu;
-        //console.log(`Stundenkonto (Minuten): ${stundenKonto}`);
-
-        let anzZeit = decTimeToShowTime(minuten);
-        //console.log(`Stunden geleistet (Anzeige): ${anzZeit}`);
-
-        let anzStundenKonto = decTimeToShowTime(stundenKonto);
-        //console.log(`Stundenkonto (Anzeige): ${anzStundenKonto}`);
-
-        let anzSollMonStu = decTimeToShowTime(sollMonStu);
-        //console.log(`Soll-Stunden (Anzeige): ${anzSollMonStu}`);
-
-        let decSoll = (sollMonStu/60);
-        let decStd = (minuten/60);
-        let decKonto = (stundenKonto/60);
-
-        //console.log(`Soll-Stunden - (Anzeige):${anzSollMonStu} (Dezimal):${decSoll}\nStunden geleistet - (Anzeige):${anzZeit} (Dezimal):${decStd}\nStundenkonto - (Anzeige):${anzStundenKonto} (Dezimal):${decKonto}`);
-
-
-        jr_add_subtable_row('monatsplan', {
-            monat: monat,
-            soll_stunden: decSoll, 
-            soll_stunden_txt: anzSollMonStu, 
-            stunden: decStd, stunden_txt: anzZeit, 
-            stundenkonto: decKonto, stundenkonto_txt: anzStundenKonto
-          });
-
-        /** 
-        jr_execute_dialog_function('saveMonStu', { monat: monat, soll_stunden: decSoll, 
-            soll_stunden_txt: anzSollMonStu, 
-            stunden: decStd, stunden_txt: anzZeit, 
-            stundenkonto: decKonto, stundenkonto_txt: anzStundenKonto}, saveMonStuCallback, errorCallback);
-        */
-       
         //console.log('Monatsstunden (Anzeige): '+anzZeit);
         //console.log('Monatsstunden (Minuten): '+minuten);
 
@@ -1492,72 +1269,6 @@ function timeSum() {
 
 
 /**
- * TBD TBD TBD
- * Loop über die Untertabelle um alle Leistungen aufzuaddieren
- * @returns {number} minuten - Aufaddierte Monatsstunden in Minuten
- */
-function timeSumSB() {
-
-    var rowIDs = jr_get_subtable_row_ids('schichten');
-    var lenID = rowIDs.length;
-
-    var minuten = 0;
-
-    let anzProTag = [];
-    let k = 0;
-
-    for (var i = 0; i < lenID; i++) {
-
-        let von = jr_get_subtable_value('schichten', rowIDs[i],'von');
-        let vonTag = von.toLocaleDateString('de-DE');
-
-        let counter = 1;
-
-        if (anzProTag.some(e => e.tag == vonTag)) {
-
-            console.log(`ist bereits im Array enthalten.`);
-
-        } else {
-
-            for (var j = i+1; j < lenID; j++) {
-
-                let von2 = jr_get_subtable_value('schichten', rowIDs[j],'von');
-                let vonTag2 = von2.toLocaleDateString('de-DE');
-    
-                //console.log(`vonTag2: ${vonTag2}`);
-    
-                if (vonTag == vonTag2) {
-    
-                    counter++;
-                    console.log(`Anzahl Leistungen am ${vonTag}: ${counter}`);
-    
-                }
-    
-            }
-            
-            let anzTag = {anzahl: counter, tag: vonTag};
-            anzProTag[k] = anzTag;
-            k++;
-
-        }
-
-    }
-
-    console.log(anzProTag);
-
-    for (var l = 0; l < anzProTag.length; l++) {
-
-        console.log(anzProTag[l].anzahl);
-        console.log(anzProTag[l].tag);
-
-    }
-
-    return minuten;
-
-}
-
-
-/**
  * Loop über die SQL-Tabelle Abwesenheiten (soll-reduzierend)
  * @param {Date} von 
  * @param {Date} bis 
@@ -1668,7 +1379,7 @@ function sickDays2(von, bis, schulStd) {
 
             if (!bis || bis == 'Invalid Date') {
                 bis = jr_get_value('dt_lastOfMonth');
-                console.log(`Enddatum - Ende des Monats: ${bis}`);
+                //console.log(`Enddatum - Ende des Monats: ${bis}`);
             }
     
             if (stdE == 1 && !dateCheck(von, bis, abwDate)) {
@@ -2142,55 +1853,127 @@ function getWorkingDays(startDate, endDate, daysWeek){
         currentDate.setDate(currentDate.getDate()+1); 
     }
 
-    /*
-
-    if (daysWeek == 4) {
-
-        console.log(`Abrechnungstage vor Modulo: ${result}`);
-        let modres = result%5;
-        result = result - modres;
-        console.log(`Abrechnungstage nach Modulo: ${result}`);
-        let divres = result/5;
-        result = result - divres;
-        console.log(`Abrechnungstage nach Geteilt: ${result}`);
-        result = result + modres;
-        console.log(`Abrechnungstage nach Modulo +: ${result}`);
-
-    }
-
-    if (daysWeek == 3) {
-
-        console.log(`Abrechnungstage vor Modulo: ${result}`);
-        let modres = result%5;
-        result = result - modres;
-        console.log(`Abrechnungstage nach Modulo: ${result}`);
-        let divres = result/5;
-        result = result - (divres*2);
-        console.log(`Abrechnungstage nach Geteilt: ${result}`);
-        result = result + modres;
-        console.log(`Abrechnungstage nach Modulo +: ${result}`);
-
-    }
-
-    if (daysWeek == 2) {
-
-        console.log(`Abrechnungstage vor Modulo: ${result}`);
-        let modres = result%5;
-        result = result - modres;
-        console.log(`Abrechnungstage nach Modulo: ${result}`);
-        let divres = result/5;
-        result = result - (divres*3);
-        console.log(`Abrechnungstage nach Geteilt: ${result}`);
-        result = result + modres;
-        console.log(`Abrechnungstage nach Modulo +: ${result}`);
-
-    }
-
-    */
-
     return result;
 
 }
+
+
+/**
+ * Loop über alle Zeitintervalle eines Tages um Überschneidungen zu finden
+ * @param {Array} intervals 
+ * @returns {Array} overlaps
+ */
+function calculateOverlap(intervals) {
+
+    // Schritt 1: Sortieren Sie das Array nach dem Startzeitpunkt
+    intervals.sort((a, b) => a[0] - b[0]);
+
+    //console.log(intervals);
+  
+    const overlaps = [];
+  
+    // Schritt 2: Durchlaufen Sie das sortierte Array und finden Sie Überschneidungen
+    for (let i = 0; i < intervals.length - 1; i++) {
+      
+        const currentInterval = intervals[i];
+        const nextInterval = intervals[i + 1];
+
+        //console.log(currentInterval, nextInterval);
+  
+        if (currentInterval[1] >= nextInterval[0]) {
+            // Es gibt eine Überschneidung
+            const overlapStart = Math.max(currentInterval[0], nextInterval[0]);
+            const overlapEnd = Math.min(currentInterval[1], nextInterval[1]);
+            overlaps.push([new Date(overlapStart), new Date(overlapEnd)]);
+
+        }
+    }
+  
+    return overlaps;
+}
+
+
+/**
+ * Loop über alle Zeitintervalle eines Tages um Überschneidungen zu finden (nach Endzeitpunkt sortiert)
+ * @param {Array} intervals 
+ * @returns {Array} overlaps
+ */
+function calculateOverlapEnd(intervals) {
+
+    // Schritt 1: Sortieren Sie das Array nach dem Endzeitpunkt
+    intervals.sort((a, b) => a[1] - b[1]);
+
+    //console.log(intervals);
+  
+    const overlaps = [];
+  
+    // Schritt 2: Durchlaufen Sie das sortierte Array und finden Sie Überschneidungen
+    for (let i = 0; i < intervals.length - 1; i++) {
+      
+        const currentInterval = intervals[i];
+        const nextInterval = intervals[i + 1];
+
+        //console.log(currentInterval, nextInterval);
+  
+        if (currentInterval[1] >= nextInterval[0]) {
+            // Es gibt eine Überschneidung
+            const overlapStart = Math.max(currentInterval[0], nextInterval[0]);
+            const overlapEnd = Math.min(currentInterval[1], nextInterval[1]);
+            overlaps.push([new Date(overlapStart), new Date(overlapEnd)]);
+
+        }
+    }
+  
+    return overlaps;
+}
+
+
+/**
+ * Loop über die Intervals um Gesamtzeit in Minuten zu berechnen
+ * @param {Array} intervals 
+ * @returns 
+ */
+function getGesMin(intervals) {
+
+    let gesMin = 0;
+
+    for (let i=0; i < intervals.length; i++) {
+
+        const currentInterval = intervals[i];
+        let currIntervalMin = jr_date_diff(currentInterval[1], currentInterval[0], 'm');
+
+        gesMin += currIntervalMin;
+        //console.log(`getGesMin() - Durchlauf ${i+1}: ${gesMin}`);
+
+    }
+
+    return gesMin;
+}
+
+
+/**
+ * Erstellt aus den beiden Overlaps-Arrays aus calculateOverlap() und calculateOverlapend() ein minMax-Array
+ * @param {Array} arr1 
+ * @param {Array} arr2 
+ * @returns {Array} minMaxArray - Array mit minimalem Überschneidungsbeginn und maximalem Überschneidungsende
+ */
+function createMinMaxArray(arr1, arr2) {
+    // Stellen Sie sicher, dass beide Arrays die gleiche Länge haben
+    if (arr1.length !== arr2.length) {
+        throw new Error("Die Arrays müssen die gleiche Länge haben.");
+    }
+  
+    // Verwenden Sie Array.map, um die Min- und Max-Werte für jedes Paar von Elementen zu erstellen
+    const minMaxArray = arr1.map((value, index) => {
+
+        const minValue = Math.min(value[0], arr2[index][0]);
+        const maxValue = Math.max(value[1], arr2[index][1]);
+        return [new Date(minValue), new Date(maxValue)];
+
+    });
+  
+    return minMaxArray;
+  }
 
 
 
@@ -2222,19 +2005,9 @@ function isValidDate(d) {
 function dateCheck(from, to, check) {
     var fDate, lDate, cDate;
 
-    //console.log('from: '+from);
-    //console.log('to: '+to);
-    //console.log('check: '+check);
-    //console.log('\n');
-
     fDate = Date.parse(from);
     lDate = Date.parse(to);
     cDate = Date.parse(check);
-
-    //console.log('from: '+fDate);
-    //console.log('to: '+lDate);
-    //console.log('check: '+cDate);
-    //console.log('\n');
 
     if (cDate <= lDate && cDate >= fDate) {
 
@@ -2448,10 +2221,10 @@ function dateConvertSqlTableToJs(date) {
 function readJSONplan() {
 
     let maxID = jr_get_table_max_id('stb_stundenplan');
-    console.log(maxID);
+    //console.log(maxID);
 
     let week01 = JSON.parse(jr_get_table_value('stb_stundenplan', maxID, 'woche01'));
-    console.log(week01);
+    //console.log(week01);
     
     if (jr_get_table_value('stb_stundenplan', maxID, 'woche02')) {
 
@@ -2465,7 +2238,7 @@ function readJSONplan() {
 
     let assiID = jr_get_value('txb_schulB');
 
-    console.log(`Start-Tag: ${fom}, End-Tag: ${lom}`);
+    //console.log(`Start-Tag: ${fom}, End-Tag: ${lom}`);
 
     let currentDate = fom;
 
@@ -2478,9 +2251,9 @@ function readJSONplan() {
 
         var weekDay = currentDate.getDay();
 
-        console.log('------------');
-        console.log(`derzeitiger Tag: ${currentDate}`);
-        console.log(`derzeitiger Wochentag: ${weekDay}`);
+        //console.log('------------');
+        //console.log(`derzeitiger Tag: ${currentDate}`);
+        //console.log(`derzeitiger Wochentag: ${weekDay}`);
 
         if(weekDay != 0 && weekDay != 6) {
 
@@ -2560,7 +2333,7 @@ function readJSONplan() {
 
             }
 
-            console.log(strSchichten);
+            //console.log(strSchichten);
 
             if (lart && beginn != 'Invalid Date' && ende != 'Invalid Date') {
 
@@ -2632,8 +2405,8 @@ function readJSONplan() {
 
     strSchichten += '}';
 
-    console.log(strSchichten);
-    console.log(JSON.parse(strSchichten));
+    //console.log(strSchichten);
+    //console.log(JSON.parse(strSchichten));
 
     jr_subtable_init('schichten', JSON.parse(strSchichten), stundenplanCallback, errorCallback);
 
@@ -2699,6 +2472,141 @@ function OnStundenplanClicked() {
 
 
 /**
+ * Funktion wird beim Laden des Prüfdialogs aufgerufen. 
+ * Es werden zusätzliche Spalten in der Untertabelle angezeigt:
+ * korrigiert, zwei-zu-eins, Pool
+ */
+function onloadSB() {
+
+    timeDisplayUpdate();
+
+    jr_show_subtable_column('schichten', 'korrigiert');
+    jr_show_subtable_column('schichten', 'zwei-zu-eins');
+    jr_show_subtable_column('schichten', 'pool');
+
+    $("schichten_add_value").hide();
+
+    jr_show_subtable_column('monatsplan', 'soll_stunden');
+    jr_show_subtable_column('monatsplan', 'stunden');
+    jr_show_subtable_column('monatsplan', 'stundenkonto');
+
+    jr_hide_subtable_column('monatsplan', 'soll_stunden_txt');
+    jr_hide_subtable_column('monatsplan', 'stunden_txt');
+    jr_hide_subtable_column('monatsplan', 'stundenkonto_txt');
+
+
+    //jr_sql_refresh('stx_status');
+    jr_sql_refresh('stx_koordination_email');
+
+    let fdc = jr_get_value('stx_firstDateContract');
+    let ldc = jr_get_value('stx_lastDateContract');
+
+    //console.log(`Vertragsbeginn: ${fdc}\nVertragsende: ${ldc}`);
+
+    fdc = new Date(fdc);
+
+    if (ldc) {
+
+        ldc = new Date(ldc);
+
+    }
+
+    //console.log(`Vertragsbeginn (Date Object): ${fdc}\nVertragsende (Date Object): ${ldc}`);
+
+    jr_set_value('dt_firstOfContract', fdc);
+    jr_set_value('dt_lastOfContract', ldc);
+
+    jr_set_value('cb_back', 0);
+
+    jQuery( document ).ready( function() {
+
+        let zeitraum = abrZeitraum();
+
+        //console.log(`Zeitraum: ${zeitraum}`);
+    
+        jr_set_value('txb_abrzeit', zeitraum);
+  
+    });
+
+    jQuery(function() {
+
+        //console.log(jQuery('#stx_status2').val());
+
+        let status = jQuery('#stx_status2').val();
+
+        let statusDsc = `<h2 align="center" >${status}</h2>`
+
+        jr_set_value('txb_status', status);
+
+        jr_set_value('dsc_status', statusDsc);
+
+        if (status == 'In Maßnahme' || status == 'Verfügbar' || status == 'Springer' || status == 'Dezentrale Koordination' || status == 'Springer Schule') {
+    
+            jQuery("#div_dsc_status").css( "border", "3px solid green" );
+    
+        }
+    
+        else if (status == 'Krank (Langzeit)' || status == 'Beschäftigungsverbot' || status == 'Freistellung' || status == 'Elternzeit' || status == 'Ruhend') {
+    
+            jQuery("#div_dsc_status").css( "border", "3px solid red" );
+    
+        }
+    
+        else {
+    
+            jQuery("#div_dsc_status").css( "border", "3px solid yellow" );
+    
+        }
+
+    });
+
+    jQuery("#monatsplan").change(function(){
+        monthHoursOverwrite();
+      });
+
+    
+
+}
+
+
+/**
+ * Aufruffunktion um zu Prüfen, ob alle Daten der Untertabelle korrekt sind, spezifisch für die Prüfungsansicht
+ * Siehe onDiaSave()
+ */
+function onDiaSaveSB() {
+    
+    jr_set_value('txb_checkSafe', 0);
+    
+    document.getElementById("schichten_add_value").value = 1;
+
+    let rowIDs = jr_get_subtable_row_ids('schichten');
+    
+    rowIDs.forEach(klientName);
+    rowIDs.forEach(poolName);
+    rowIDs.forEach(reset_2to1);
+    rowIDs.forEach(saveCheck);
+    
+    let checkSave = jr_get_value('txb_checkSafe');
+    //console.log("before dateOverlap() CheckSave: "+checkSave);
+
+    if (checkSave == resCheck) {
+
+        rowIDs.forEach(dateOverlapCheck);
+
+    }
+
+    document.getElementById("schichten").addEventListener("click", function () {
+    
+        rowIDs.forEach(resetError);
+
+    });
+
+    getTimeSumSB();
+
+}
+
+
+/**
  * Funktion zum Setzen einer Flag in der Prüfschritt-Eingangsbox (unvollständig [rot] oder Rückfrage [gelb])
  */
 function changeFlag() {
@@ -2711,11 +2619,15 @@ function changeFlag() {
 
     if (unv) {
 
-        jr_set_value('txb_flag', '/icons/redflag.png')
+        jr_set_value('txb_flag', '/icons/redflag.png');
 
     } else if (ruf) {
 
-        jr_set_value('txb_flag', '/icons/yellowflag.png')
+        jr_set_value('txb_flag', '/icons/yellowflag.png');
+
+    } else {
+
+        jr_set_value('txb_flag', '');
 
     }
 
@@ -2730,50 +2642,278 @@ function monthHoursOverwrite() {
     let decStd = jr_get_subtable_value('monatsplan', 0, 'stunden');
     let decKonto = jr_get_subtable_value('monatsplan', 0, 'stundenkonto');
     let decSoll = jr_get_subtable_value('monatsplan', 0, 'soll_stunden');
+
+    //console.log(`Soll-Stunden: ${decSoll}\nStunden: ${decStd}\nStundenkonto:${decKonto}`);
     
-    let minuten = decStd * 60;
-    let stundenKonto = decKonto * 60;
-    let sollMonStu = decSoll * 60;
+    if ((decStd || decStd == 0) && (decKonto || decKonto == 0) && (decSoll || decSoll == 0)) {
 
-    let anzZeit = decTimeToShowTime(minuten);
-    //console.log(`Stunden geleistet (Anzeige): ${anzZeit}`);
-
-    let anzStundenKonto = decTimeToShowTime(stundenKonto);
-    //console.log(`Stundenkonto (Anzeige): ${anzStundenKonto}`);
-
-    let anzSollMonStu = decTimeToShowTime(sollMonStu);
-    //console.log(`Soll-Stunden (Anzeige): ${anzSollMonStu}`);
-
-    let anzStd = jr_get_subtable_value('monatsplan', 0, 'stunden_txt');
-    let anzKonto = jr_get_subtable_value('monatsplan', 0, 'stundenkonto_txt');
-    let anzSoll = jr_get_subtable_value('monatsplan', 0, 'soll_stunden_txt');
-
-    //console.log(`Soll-Stunden (Anzeige): ${anzSoll}`);
-    //console.log(`Stunden geleistet (Anzeige): ${anzStd}`);
-    //console.log(`Stundenkonto (Anzeige): ${anzKonto}`);
-
-    let monat = jr_get_value('txb_month');
-
-    //console.log(monat);
-
-    if (anzZeit != anzStd || anzKonto != anzStundenKonto || anzSoll != anzSollMonStu) {
-
-        let rowIDs2 = jr_get_subtable_row_ids('monatsplan');
-
-        if (rowIDs2) {
-
-            rowIDs2.forEach(deleteSubRow);
-
-        }
+        let minuten = decStd * 60;
+        let stundenKonto = decKonto * 60;
+        let sollMonStu = decSoll * 60;
     
-        jr_execute_dialog_function('saveMonStu', { monat: monat, soll_stunden: decSoll, 
-            soll_stunden_txt: anzSollMonStu, 
-            stunden: decStd, stunden_txt: anzZeit, 
-            stundenkonto: decKonto, stundenkonto_txt: anzStundenKonto}, saveMonStuCallback, errorCallback);
+        let anzZeit = decTimeToShowTime(minuten);
+        //console.log(`Stunden geleistet (Anzeige): ${anzZeit}`);
+    
+        let anzStundenKonto = decTimeToShowTime(stundenKonto);
+        //console.log(`Stundenkonto (Anzeige): ${anzStundenKonto}`);
+    
+        let anzSollMonStu = decTimeToShowTime(sollMonStu);
+        //console.log(`Soll-Stunden (Anzeige): ${anzSollMonStu}`);
+    
+        let anzStd = jr_get_subtable_value('monatsplan', 0, 'stunden_txt');
+        let anzKonto = jr_get_subtable_value('monatsplan', 0, 'stundenkonto_txt');
+        let anzSoll = jr_get_subtable_value('monatsplan', 0, 'soll_stunden_txt');
+    
+        //console.log(`Soll-Stunden (Anzeige): ${anzSoll}`);
+        //console.log(`Stunden geleistet (Anzeige): ${anzStd}`);
+        //console.log(`Stundenkonto (Anzeige): ${anzKonto}`);
+    
+        let monat = jr_get_value('txb_month');
+    
+        //console.log(monat);
+    
+        if (anzZeit != anzStd || anzKonto != anzStundenKonto || anzSoll != anzSollMonStu) {
+    
+            let rowIDs2 = jr_get_subtable_row_ids('monatsplan');
+    
+            if (rowIDs2) {
+    
+                rowIDs2.forEach(deleteSubRow);
+    
+            }
+        
+            jr_execute_dialog_function('saveMonStu', { monat: monat, soll_stunden: decSoll, 
+                soll_stunden_txt: anzSollMonStu, 
+                stunden: decStd, stunden_txt: anzZeit, 
+                stundenkonto: decKonto, stundenkonto_txt: anzStundenKonto}, saveMonStuCallback, errorCallback);
+    
+        }    
 
     }
 
 }
+
+
+/**
+ * Zentrale Stundenberechnungs-Funktion (s.o. getTimeSum())
+ * Speziell angepasst auf die Belange der Sachbearbeitung
+ */
+function getTimeSumSB() {
+
+    let monat = jr_get_value('txb_month');
+    let minuten = timeSumSB();
+    let rowIDs2 = jr_get_subtable_row_ids('monatsplan');
+
+    if (rowIDs2) {
+        rowIDs2.forEach(deleteSubRow);
+    }
+
+    if (minuten || minuten == 0) {
+
+        /** -------------------------------------------------------------------------------- */
+
+        let sollMonStuArr = multipleContracts();
+
+        //console.log(`sollMonStuArr: ${sollMonStuArr}`);
+
+        let sollMonStu = sollMonStuArr[0].reduce(function (a, b) {
+            return a + b;
+          }, 0);
+
+        //console.log(`Soll-Stunden (Monat): ${sollMonStu}`);
+
+        minuten += sollMonStuArr[1].reduce(function (a, b) {
+            return a + b;
+          }, 0);
+
+        //console.log(`Minuten (Monat): ${minuten}`);
+
+        /** -------------------------------------------------------------------------------- */
+
+        let stundenKonto = minuten - sollMonStu;
+        //console.log(`Stundenkonto (Minuten): ${stundenKonto}`);
+
+        let anzZeit = decTimeToShowTime(minuten);
+        //console.log(`Stunden geleistet (Anzeige): ${anzZeit}`);
+
+        let anzStundenKonto = decTimeToShowTime(stundenKonto);
+        //console.log(`Stundenkonto (Anzeige): ${anzStundenKonto}`);
+
+        let anzSollMonStu = decTimeToShowTime(sollMonStu);
+        //console.log(`Soll-Stunden (Anzeige): ${anzSollMonStu}`);
+
+        let decSoll = (sollMonStu/60);
+        let decStd = (minuten/60);
+        let decKonto = (stundenKonto/60);
+
+        //console.log(`Soll-Stunden - (Anzeige):${anzSollMonStu} (Dezimal):${decSoll}\nStunden geleistet - (Anzeige):${anzZeit} (Dezimal):${decStd}\nStundenkonto - (Anzeige):${anzStundenKonto} (Dezimal):${decKonto}`);
+        
+        jr_execute_dialog_function('saveMonStu', { monat: monat, soll_stunden: decSoll, 
+            soll_stunden_txt: anzSollMonStu, 
+            stunden: decStd, stunden_txt: anzZeit, 
+            stundenkonto: decKonto, stundenkonto_txt: anzStundenKonto}, saveMonStuCallback, errorCallback);
+        
+        /*
+        jr_subtable_init('monatsplan', {
+            0: { monat: monat, soll_stunden: decSoll, 
+                soll_stunden_txt: anzSollMonStu, 
+                stunden: decStd, stunden_txt: anzZeit, 
+                stundenkonto: decKonto, stundenkonto_txt: anzStundenKonto}
+        });
+        */
+
+        //console.log('Monatsstunden (Anzeige): '+anzZeit);
+        //console.log('Monatsstunden (Minuten): '+minuten);
+
+    }
+
+}
+
+/**
+ * Loop über die Untertabelle um alle Leistungen aufzuaddieren (X-zu-1-Kompatibilät)
+ * @returns {number} minuten - Aufaddierte Monatsstunden in Minuten
+ */
+function timeSumSB() {
+
+    let rowIDs = jr_get_subtable_row_ids('schichten');
+    let lenID = rowIDs.length;
+
+    let minuten = 0;
+    let k = 0;
+
+    let anzProTag = [];
+    let idArrTemp = [];
+    let idArr = [];
+    let zeitraum = [];
+
+    for (var i = 0; i < lenID; i++) {
+
+        let von = jr_get_subtable_value('schichten', rowIDs[i],'von');
+        let bis = jr_get_subtable_value('schichten', rowIDs[i],'bis');
+        let zeit = jr_get_subtable_value('schichten', rowIDs[i], 'zeit3');
+        let vonTag = von.toLocaleDateString('de-DE');
+
+        let counter = 1;
+
+        if (!anzProTag.some(e => e.tag == vonTag)) {
+
+            for (var j = i+1; j < lenID; j++) {
+
+                let von2 = jr_get_subtable_value('schichten', rowIDs[j],'von');
+                let bis2 = jr_get_subtable_value('schichten', rowIDs[j],'bis');
+                let vonTag2 = von2.toLocaleDateString('de-DE');
+    
+                //console.log(`vonTag2: ${vonTag2}`);
+    
+                if (vonTag == vonTag2) {
+    
+                    counter++;
+                    //console.log(`Anzahl Leistungen am ${vonTag}: ${counter}`);
+
+                    if (!idArrTemp.some(e => e == i)) {
+
+                        idArrTemp.push(i);
+                        zeitraum.push([von, bis]);
+
+                    }
+                    
+                    idArrTemp.push(j);
+                    zeitraum.push([von2, bis2]);
+                    //console.log(`Temporäres ID-Array an Stelle ${j}: ${idArrTemp}`);
+    
+                }
+    
+            }
+
+            idArr = idArrTemp;
+            //console.log(`ID-Array an Stelle ${j}: ${idArr}`);
+            if (counter > 1) {
+
+                let anzTag = {anzahl: counter, tag: vonTag, ids: idArr, intervals: zeitraum};
+                anzProTag[k] = anzTag;
+                k++;
+
+            } else {
+
+                minuten += parseInt(zeit);
+                console.log(`Gesamtminuten der Leistung am ${vonTag}: ${parseInt(zeit)}`);
+
+            }
+
+            idArrTemp = [];
+            zeitraum = [];
+
+        }
+
+    }
+
+    console.log(anzProTag);
+
+    for (let l = 0; l < anzProTag.length; l++) {
+
+        let dailyMin = 0;
+
+        if (anzProTag[l].anzahl > 1) {
+
+            console.log('--------------');
+
+            let overlaps = [];
+    
+            let gesMin = getGesMin(anzProTag[l].intervals);
+            console.log(`Gesamtminuten der Leistungen am ${anzProTag[l].tag}: ${gesMin}`);
+            
+            let overlapsStart = calculateOverlap(anzProTag[l].intervals);
+            console.log(overlapsStart);
+    
+            let overlapsEnd = calculateOverlapEnd(anzProTag[l].intervals);
+            console.log(overlapsEnd);
+    
+            if (getGesMin(overlapsStart) !== getGesMin(overlapsEnd)) {
+    
+                overlaps = createMinMaxArray(overlapsStart, overlapsEnd);
+                console.log(overlaps);
+    
+            } else {
+    
+                overlaps = overlapsStart;
+                console.log(overlaps);
+    
+            }
+            
+            let overlapMin = getGesMin(overlaps);
+            console.log(`Overlap-Minuten der Leistungen am ${anzProTag[l].tag}: ${overlapMin}`);
+    
+            dailyMin = gesMin - overlapMin;
+            console.log(`Minuten der Leistungen am ${anzProTag[l].tag}: ${dailyMin}`);
+
+        }
+
+
+        if (dailyMin > 360) {
+
+            if (dailyMin > 540) {
+
+                dailyMin -= 45;
+
+            } else {
+
+                dailyMin -= 30;
+
+            }
+
+        }
+
+        minuten += dailyMin;
+        console.log(`Gesamtminuten aller Leistungen bis zum ${anzProTag[l].tag}: ${minuten}`);
+
+    }
+    
+    return minuten;
+    
+}
+
+
+
 
 /**
  * ------------------------------------- TBD TBD TBD ----------------------------------------
