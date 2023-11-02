@@ -928,7 +928,7 @@ function getAbsenceCallback(returnObject) {
         jr_show_step_action('save');
 
         sortShifts();
-        getTimeSumSB();
+        getTimeSum();
         
         let bis = jr_get_value('dt_lastOfMonth');
         bis.setHours(23, 59, 59, 999);
@@ -965,9 +965,14 @@ function saveMonStuCallback(returnObject) {
 
     if (returnObject.result) {
 
-        jr_notify_info(returnObject.result.rowData);
-        jr_subtable_refresh('monatsplan','*','*'); // aktualisiert die SQL-Elemente aller Spalten für alle Zeilen
-        jr_sql_refresh('stb_monatsplan');
+        setTimeout(()=>{
+
+            console.log(returnObject.result.rowData);
+            
+            jr_subtable_refresh('monatsplan','*','*'); // aktualisiert die SQL-Elemente aller Spalten für alle Zeilen
+            jr_sql_refresh('stb_monatsplan');
+
+        },500);
 
 
     }
@@ -1062,7 +1067,7 @@ function getTimeSum() {
 
     let monat = jr_get_value('txb_month');
 
-    let minuten = timeSumSB();
+    let minuten = timeSum();
 
     let rowIDs2 = jr_get_subtable_row_ids('monatsplan');
 
@@ -1136,135 +1141,146 @@ function getTimeSum() {
 
 
 /**
- * Loop über die Untertabelle um alle Leistungen aufzuaddieren
+ * Loop über die Untertabelle um alle Leistungen aufzuaddieren (X-zu-1-Kompatibilät)
  * @returns {number} minuten - Aufaddierte Monatsstunden in Minuten
  */
 function timeSum() {
-    var rowIDs = jr_get_subtable_row_ids('schichten');
-    var lenID = rowIDs.length;
 
-    //console.log(rowIDs);
-    //console.log(lenID);
+    let rowIDs = jr_get_subtable_row_ids('schichten');
+    let lenID = rowIDs.length;
 
-    var minuten = 0;
+    let minuten = 0;
+    let k = 0;
+
+    let anzProTag = [];
+    let idArrTemp = [];
+    let idArr = [];
+    let zeitraum = [];
 
     for (var i = 0; i < lenID; i++) {
 
-        var zeit = jr_get_subtable_value('schichten', rowIDs[i], 'zeit3');
-        var zweizueins = jr_get_subtable_value('schichten', rowIDs[i], 'zwei-zu-eins');
+        let von = jr_get_subtable_value('schichten', rowIDs[i],'von');
+        let bis = jr_get_subtable_value('schichten', rowIDs[i],'bis');
+        let zeit = jr_get_subtable_value('schichten', rowIDs[i], 'zeit3');
+        let vonTag = von.toLocaleDateString('de-DE');
 
-        var zeit3 = 0;
-        var zeit4 = 0;
-        var zeit5 = 0;
+        let counter = 1;
 
-        //console.log('Zeile '+(i+1)+': '+zweizueins);
+        if (!anzProTag.some(e => e.tag == vonTag)) {
 
-        var von = jr_get_subtable_value('schichten', rowIDs[i],'von');
-        var bis = jr_get_subtable_value('schichten', rowIDs[i],'bis');
-        var vonTag = von.toLocaleDateString('de-DE');
+            for (var j = i+1; j < lenID; j++) {
 
-        if (zweizueins && i != (lenID-1)) {
+                let von2 = jr_get_subtable_value('schichten', rowIDs[j],'von');
+                let bis2 = jr_get_subtable_value('schichten', rowIDs[j],'bis');
+                let vonTag2 = von2.toLocaleDateString('de-DE');
+    
+                //console.log(`vonTag2: ${vonTag2}`);
+    
+                if (vonTag == vonTag2) {
+    
+                    counter++;
+                    //console.log(`Anzahl Leistungen am ${vonTag}: ${counter}`);
 
-            var zweizueins2 = jr_get_subtable_value('schichten', rowIDs[i+1],'zwei-zu-eins');
+                    if (!idArrTemp.some(e => e == i)) {
 
-            //console.log('Zeile '+(i+2)+': '+zweizueins2);
-
-            if (zweizueins2) {
-
-                var von2 = jr_get_subtable_value('schichten', rowIDs[i+1],'von');
-                var bis2 = jr_get_subtable_value('schichten', rowIDs[i+1],'bis');
-                var von2Tag = von2.toLocaleDateString('de-DE');
-
-                if (vonTag == von2Tag) {
-
-                    //console.log(`-------------------------\n${vonTag}\n${von2Tag}\n----------------------------------`);
-
-                    //console.log(`von: ${von}\nvon2: ${von2}\nbis: ${bis}\nbis2: ${bis2}`);
-
-                    if (!dateCheck(von, bis, von2)) {
-
-                        if (!dateCheck(von, bis, bis2)) {
-
-                            zeit3 = jr_date_diff(bis2, von2, 'm');
-                            zeit4 = jr_date_diff(von2, von, 'm');
-                            zeit5 = jr_date_diff(bis, bis2, 'm');
-                            //console.log(`1. Fall --- von < von2 < bis2 < bis\nHauptdifferenz: ${zeit3}\ndavor: ${zeit4}\ndanach: ${zeit5}`);
-
-                        } else {
-
-                            zeit3 = jr_date_diff(bis, von2, 'm');
-                            zeit4 = jr_date_diff(von2, von, 'm');
-                            zeit5 = jr_date_diff(bis2, bis, 'm');
-                            //console.log(`2. Fall --- von < von2 < bis < bis2\nHauptdifferenz: ${zeit3}\ndavor: ${zeit4}\ndanach: ${zeit5}`);
-
-                        }
-
-                    } else {
-
-                        if (!dateCheck(von, bis, bis2)) {
-
-                            zeit3 = jr_date_diff(bis2, von, 'm');
-                            zeit4 = jr_date_diff(von, von2, 'm');
-                            zeit5 = jr_date_diff(bis, bis2, 'm');
-                            //console.log(`3. Fall --- von2 < von < bis2 < bis\nHauptdifferenz: ${zeit3}\ndavor: ${zeit4}\ndanach: ${zeit5}`);
-
-                        } else {
-
-                            zeit3 = jr_date_diff(bis, von, 'm');
-                            zeit4 = jr_date_diff(von, von2, 'm');
-                            zeit5 = jr_date_diff(bis2, bis, 'm');
-                            //console.log(`4. Fall --- von2 < von < bis < bis2\nHauptdifferenz: ${zeit3}\ndavor: ${zeit4}\ndanach: ${zeit5}`);
-
-                        }
+                        idArrTemp.push(i);
+                        zeitraum.push([von, bis]);
 
                     }
-
-                    let dailyMin = parseInt(zeit3) + parseInt(zeit4) + parseInt(zeit5);
-
-                    if (dailyMin > 360) {
-
-                        if (dailyMin > 540) {
-
-                            dailyMin = dailyMin - 45;
-
-                        } else {
-
-                            dailyMin = dailyMin - 30;
-
-                        }
-
-                    }
-
-                    //console.log(`tägliche Minuten am ${vonTag}: ${dailyMin}`);
-
-                    minuten += dailyMin;
-
-                    //console.log(`Durchgang ${i}: ${minuten}`);
-
+                    
+                    idArrTemp.push(j);
+                    zeitraum.push([von2, bis2]);
+                    //console.log(`Temporäres ID-Array an Stelle ${j}: ${idArrTemp}`);
+    
                 }
-            }
-        
-        } else {
-
-            if (zweizueins) {
-
-                zeit = 0;
-
+    
             }
 
-            //console.log(`tägliche Minuten am ${vonTag}: ${zeit}`);
+            idArr = idArrTemp;
+            //console.log(`ID-Array an Stelle ${j}: ${idArr}`);
+            if (counter > 1) {
 
-            minuten += parseInt(zeit);
+                let anzTag = {anzahl: counter, tag: vonTag, ids: idArr, intervals: zeitraum};
+                anzProTag[k] = anzTag;
+                k++;
 
-            //console.log(`Durchgang ${i}: ${minuten}`);
+            } else {
+
+                minuten += parseInt(zeit);
+                console.log(`Gesamtminuten der Leistung am ${vonTag}: ${parseInt(zeit)}`);
+
+            }
+
+            idArrTemp = [];
+            zeitraum = [];
 
         }
 
     }
 
-    //console.log('Minuten gesamt: '+minuten);
-    return minuten;
+    console.log(anzProTag);
 
+    for (let l = 0; l < anzProTag.length; l++) {
+
+        let dailyMin = 0;
+
+        if (anzProTag[l].anzahl > 1) {
+
+            console.log('--------------');
+
+            let overlaps = [];
+    
+            let gesMin = getGesMin(anzProTag[l].intervals);
+            console.log(`Gesamtminuten der Leistungen am ${anzProTag[l].tag}: ${gesMin}`);
+            
+            let overlapsStart = calculateOverlap(anzProTag[l].intervals);
+            console.log(overlapsStart);
+    
+            let overlapsEnd = calculateOverlapEnd(anzProTag[l].intervals);
+            console.log(overlapsEnd);
+    
+            if (getGesMin(overlapsStart) !== getGesMin(overlapsEnd)) {
+    
+                overlaps = createMinMaxArray(overlapsStart, overlapsEnd);
+                console.log(overlaps);
+    
+            } else {
+    
+                overlaps = overlapsStart;
+                console.log(overlaps);
+    
+            }
+            
+            let overlapMin = getGesMin(overlaps);
+            console.log(`Overlap-Minuten der Leistungen am ${anzProTag[l].tag}: ${overlapMin}`);
+    
+            dailyMin = gesMin - overlapMin;
+            console.log(`Minuten der Leistungen am ${anzProTag[l].tag}: ${dailyMin}`);
+
+        }
+
+
+        if (dailyMin > 360) {
+
+            if (dailyMin > 540) {
+
+                dailyMin -= 45;
+
+            } else {
+
+                dailyMin -= 30;
+
+            }
+
+        }
+
+        minuten += dailyMin;
+        console.log(`Gesamtminuten aller Leistungen bis zum ${anzProTag[l].tag}: ${minuten}`);
+
+    }
+    
+    return minuten;
+    
 }
 
 
@@ -2560,9 +2576,11 @@ function onloadSB() {
 
     });
 
+    /** 
     jQuery("#monatsplan").change(function(){
         monthHoursOverwrite();
       });
+      */
 
     
 
@@ -2681,11 +2699,21 @@ function monthHoursOverwrite() {
                 rowIDs2.forEach(deleteSubRow);
     
             }
-        
+
+            jr_add_subtable_row('monatsplan', {
+                monat: monat,
+                soll_stunden: decSoll, 
+                soll_stunden_txt: anzSollMonStu, 
+                stunden: decStd, stunden_txt: anzZeit, 
+                stundenkonto: decKonto, stundenkonto_txt: anzStundenKonto
+              });
+            
+            /** 
             jr_execute_dialog_function('saveMonStu', { monat: monat, soll_stunden: decSoll, 
                 soll_stunden_txt: anzSollMonStu, 
                 stunden: decStd, stunden_txt: anzZeit, 
                 stundenkonto: decKonto, stundenkonto_txt: anzStundenKonto}, saveMonStuCallback, errorCallback);
+                */
     
         }    
 
@@ -2701,7 +2729,7 @@ function monthHoursOverwrite() {
 function getTimeSumSB() {
 
     let monat = jr_get_value('txb_month');
-    let minuten = timeSumSB();
+    let minuten = timeSum();
     let rowIDs2 = jr_get_subtable_row_ids('monatsplan');
 
     if (rowIDs2) {
@@ -2748,12 +2776,22 @@ function getTimeSumSB() {
 
         //console.log(`Soll-Stunden - (Anzeige):${anzSollMonStu} (Dezimal):${decSoll}\nStunden geleistet - (Anzeige):${anzZeit} (Dezimal):${decStd}\nStundenkonto - (Anzeige):${anzStundenKonto} (Dezimal):${decKonto}`);
         
+
+        jr_add_subtable_row('monatsplan', {
+            monat: monat,
+            soll_stunden: decSoll, 
+            soll_stunden_txt: anzSollMonStu, 
+            stunden: decStd, stunden_txt: anzZeit, 
+            stundenkonto: decKonto, stundenkonto_txt: anzStundenKonto
+          });
+        
+        /*
         jr_execute_dialog_function('saveMonStu', { monat: monat, soll_stunden: decSoll, 
             soll_stunden_txt: anzSollMonStu, 
             stunden: decStd, stunden_txt: anzZeit, 
             stundenkonto: decKonto, stundenkonto_txt: anzStundenKonto}, saveMonStuCallback, errorCallback);
         
-        /*
+
         jr_subtable_init('monatsplan', {
             0: { monat: monat, soll_stunden: decSoll, 
                 soll_stunden_txt: anzSollMonStu, 
@@ -2767,149 +2805,6 @@ function getTimeSumSB() {
 
     }
 
-}
-
-/**
- * Loop über die Untertabelle um alle Leistungen aufzuaddieren (X-zu-1-Kompatibilät)
- * @returns {number} minuten - Aufaddierte Monatsstunden in Minuten
- */
-function timeSumSB() {
-
-    let rowIDs = jr_get_subtable_row_ids('schichten');
-    let lenID = rowIDs.length;
-
-    let minuten = 0;
-    let k = 0;
-
-    let anzProTag = [];
-    let idArrTemp = [];
-    let idArr = [];
-    let zeitraum = [];
-
-    for (var i = 0; i < lenID; i++) {
-
-        let von = jr_get_subtable_value('schichten', rowIDs[i],'von');
-        let bis = jr_get_subtable_value('schichten', rowIDs[i],'bis');
-        let zeit = jr_get_subtable_value('schichten', rowIDs[i], 'zeit3');
-        let vonTag = von.toLocaleDateString('de-DE');
-
-        let counter = 1;
-
-        if (!anzProTag.some(e => e.tag == vonTag)) {
-
-            for (var j = i+1; j < lenID; j++) {
-
-                let von2 = jr_get_subtable_value('schichten', rowIDs[j],'von');
-                let bis2 = jr_get_subtable_value('schichten', rowIDs[j],'bis');
-                let vonTag2 = von2.toLocaleDateString('de-DE');
-    
-                //console.log(`vonTag2: ${vonTag2}`);
-    
-                if (vonTag == vonTag2) {
-    
-                    counter++;
-                    //console.log(`Anzahl Leistungen am ${vonTag}: ${counter}`);
-
-                    if (!idArrTemp.some(e => e == i)) {
-
-                        idArrTemp.push(i);
-                        zeitraum.push([von, bis]);
-
-                    }
-                    
-                    idArrTemp.push(j);
-                    zeitraum.push([von2, bis2]);
-                    //console.log(`Temporäres ID-Array an Stelle ${j}: ${idArrTemp}`);
-    
-                }
-    
-            }
-
-            idArr = idArrTemp;
-            //console.log(`ID-Array an Stelle ${j}: ${idArr}`);
-            if (counter > 1) {
-
-                let anzTag = {anzahl: counter, tag: vonTag, ids: idArr, intervals: zeitraum};
-                anzProTag[k] = anzTag;
-                k++;
-
-            } else {
-
-                minuten += parseInt(zeit);
-                console.log(`Gesamtminuten der Leistung am ${vonTag}: ${parseInt(zeit)}`);
-
-            }
-
-            idArrTemp = [];
-            zeitraum = [];
-
-        }
-
-    }
-
-    console.log(anzProTag);
-
-    for (let l = 0; l < anzProTag.length; l++) {
-
-        let dailyMin = 0;
-
-        if (anzProTag[l].anzahl > 1) {
-
-            console.log('--------------');
-
-            let overlaps = [];
-    
-            let gesMin = getGesMin(anzProTag[l].intervals);
-            console.log(`Gesamtminuten der Leistungen am ${anzProTag[l].tag}: ${gesMin}`);
-            
-            let overlapsStart = calculateOverlap(anzProTag[l].intervals);
-            console.log(overlapsStart);
-    
-            let overlapsEnd = calculateOverlapEnd(anzProTag[l].intervals);
-            console.log(overlapsEnd);
-    
-            if (getGesMin(overlapsStart) !== getGesMin(overlapsEnd)) {
-    
-                overlaps = createMinMaxArray(overlapsStart, overlapsEnd);
-                console.log(overlaps);
-    
-            } else {
-    
-                overlaps = overlapsStart;
-                console.log(overlaps);
-    
-            }
-            
-            let overlapMin = getGesMin(overlaps);
-            console.log(`Overlap-Minuten der Leistungen am ${anzProTag[l].tag}: ${overlapMin}`);
-    
-            dailyMin = gesMin - overlapMin;
-            console.log(`Minuten der Leistungen am ${anzProTag[l].tag}: ${dailyMin}`);
-
-        }
-
-
-        if (dailyMin > 360) {
-
-            if (dailyMin > 540) {
-
-                dailyMin -= 45;
-
-            } else {
-
-                dailyMin -= 30;
-
-            }
-
-        }
-
-        minuten += dailyMin;
-        console.log(`Gesamtminuten aller Leistungen bis zum ${anzProTag[l].tag}: ${minuten}`);
-
-    }
-    
-    return minuten;
-    
 }
 
 
