@@ -153,16 +153,9 @@ jQuery.getScript( "https://uicdn.toast.com/calendar/latest/toastui-calendar.min.
       let grund = jr_get_table_value('stb_abwesend', rowId, 'grund');
       let name = jr_get_table_value('stb_abwesend', rowId, 'name');
 
-      jr_get_value('dt_firstOfMonth');
-      jr_get_value('dt_lastOfMonth');
-
       let dateArr = [date.substring(0, 2), date.substring(3, 5), date.substring(6)];
 
-      //console.log(dateArr);
-
       date = dateArr[2]+'-'+dateArr[1]+'-'+dateArr[0];
-
-      //console.log(date+': '+grund);
 
       bdC = "#222";
 
